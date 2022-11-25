@@ -29,7 +29,7 @@ class UrlService {
       knex
         .from('links')
         .whereIn('id', rejectedUrl)
-        .update({ status: 'Pasive' })
+        .update({ status: 'passive' })
         .then(() => {
           console.log('Table update');
         });
@@ -39,7 +39,7 @@ class UrlService {
       knex
         .from('links')
         .whereIn('id', fulfilledUrl)
-        .update({ status: 'Active' })
+        .update({ status: 'active' })
         .then(() => {
           console.log('Table update');
         });

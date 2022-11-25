@@ -1,6 +1,6 @@
 const status = {
-  ACTIVE: 'Active',
-  PASSIVE: 'Passive'
+  ACTIVE: 'active',
+  PASSIVE: 'passive'
 };
 
 export default status;

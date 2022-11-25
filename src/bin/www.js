@@ -2,6 +2,7 @@
 import http from 'http';
 import 'dotenv/config';
 import 'regenerator-runtime';
+import express from 'express';
 
 // Modules from this project
 import cluster from 'cluster';
@@ -53,11 +54,10 @@ const init = async () => {
   server.listen(PORT);
   server.on('error', _onError);
   server.on('listening', _onListening);
-  // UrlService.checkUrls();
 };
-const total_cpus = require('os').cpus().length - 1;
+const total_cpus = require('os').cpus().length;
 
-if (cluster.isMaster) {
+if (cluster.isPrimary) {
   for (let i = 0; i < total_cpus; i += 1) {
     cluster.fork();
   }
@@ -70,4 +70,8 @@ if (cluster.isMaster) {
   });
 } else {
   init().catch(LoggerUtil.error);
+  const router = express.Router();
+
+  router.get('/urls/:offset/:limit', UrlsController.getAllUrls);
 }
+

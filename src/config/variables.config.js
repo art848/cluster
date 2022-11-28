@@ -10,6 +10,5 @@ export default {
   },
 
   UPDATEFUl: false,
-
   PORT: process.env.PORT
 };

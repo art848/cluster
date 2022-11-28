@@ -61,7 +61,7 @@ let element = [];
 async function isPrimary() {
 
   if (cluster.isPrimary) {
-    urls = await UrlsModel.getUrls(0,20000);
+    urls = await UrlsModel.getUrls(8600,200);
     const worker = cluster.fork();
     for (let i = 0; i < total_cpus - 2; i += 1) {
       cluster.fork()

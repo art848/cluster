@@ -8,12 +8,9 @@ const {
 let arr = 0;
 class UrlService {
   static async checkUrls(urls) {
-    // const urls = await UrlsModel.getUrls(offset, limit);
-
     const items = urls.map((ur) => (`https://${ur.domain}`));
     const of = urls.map((id) => id.id);
     const res = await Promise.allSettled(items.map((url) => fetch(url)));
-
     const fulfilledUrl = [];
     const rejectedUrl = [];
     for (let i = 0; i < of.length; i += 1) {
@@ -40,25 +37,25 @@ class UrlService {
         password: PASSWORD
       }
     });
-    if (rejectedUrl.length > 0) {
-      knex
-        .from('links')
-        .whereIn('id', rejectedUrl)
-        .update({ status: 'passive' })
-        .then(() => {
-          console.log('Table update');
-        });
+    // if (rejectedUrl.length > 0) {
+    //   knex
+    //     .from('links')
+    //     .whereIn('id', rejectedUrl)
+    //     .update({ status: 'passive' })
+    //     .then(() => {
+    //       console.log('Table update');
+    //     });
 
-      if (fulfilledUrl.length > 0) {
-        knex
-          .from('links')
-          .whereIn('id', fulfilledUrl)
-          .update({ status: 'active' })
-          .then(() => {
-            console.log('Table update');
-          });
-      }
-    }
+    //   if (fulfilledUrl.length > 0) {
+    //     knex
+    //       .from('links')
+    //       .whereIn('id', fulfilledUrl)
+    //       .update({ status: 'active' })
+    //       .then(() => {
+    //         console.log('Table update');
+    //       });
+    //   }
+    // }
   }
 }
 export default UrlService;

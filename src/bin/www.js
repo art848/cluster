@@ -2,7 +2,6 @@
 import http from 'http';
 import 'dotenv/config';
 import 'regenerator-runtime';
-import express from 'express';
 
 // Modules from this project
 import cluster from 'cluster';
@@ -10,11 +9,9 @@ import { LoggerUtil } from '../utils';
 import App from '../app';
 import UrlService from '../services/UrlService';
 import { UrlsModel } from '../models';
-import UrlsController from '../controller/urls.controller';
 // Constants
 import config from '../config/variables.config';
 import { name } from '../../package.json';
-import { send } from 'process';
 
 const { PORT } = config;
 // app.use(express).listen(PORT);
@@ -64,11 +61,9 @@ let element = [];
 async function isPrimary() {
 
   if (cluster.isPrimary) {
-    urls = await UrlsModel.getUrls(0,500);
-    // urls = await UrlsController.getAllUrls(1,20);
-
+    urls = await UrlsModel.getUrls(0,20000);
     const worker = cluster.fork();
-    for (let i = 0; i < 7; i += 1) {
+    for (let i = 0; i < total_cpus - 2; i += 1) {
       cluster.fork()
     }
       for (let step = 0; step < urls.length; step += 5) {
@@ -80,8 +75,6 @@ async function isPrimary() {
         // check for data property
         // on msg object
         if (msg.data) {
-          let count = msg.data.length * urls.length/5;
-          console.log(count);
         }
       });
 

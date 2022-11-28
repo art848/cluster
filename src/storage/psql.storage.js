@@ -13,7 +13,7 @@ class PSQLStorage {
         ? knexConfigs.production
         : knexConfigs.development;
       const pg = knex(options);
-      await pg.raw('SELECT 1;');
+      
       Model.knex(pg);
       PSQLStorage.knex = pg;
       LoggerUtil.info('PSQL Connected...');

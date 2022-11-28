@@ -9,10 +9,12 @@ import cluster from 'cluster';
 import { LoggerUtil } from '../utils';
 import App from '../app';
 import UrlService from '../services/UrlService';
+import { UrlsModel } from '../models';
 import UrlsController from '../controller/urls.controller';
 // Constants
 import config from '../config/variables.config';
 import { name } from '../../package.json';
+import { send } from 'process';
 
 const { PORT } = config;
 // app.use(express).listen(PORT);
@@ -27,16 +29,16 @@ const init = async () => {
     }
     const bind = typeof App.port === 'string' ? `Pipe ${App.port}` : `Port ${App.port}`;
     switch (error.code) {
-    case 'EACCES':
-      LoggerUtil.error(`${bind} requires elevated privileges`);
-      process.exit(1);
-      break;
-    case 'EADDRINUSE':
-      LoggerUtil.error(`${bind} is already in use`);
-      process.exit(1);
-      break;
-    default:
-      throw error;
+      case 'EACCES':
+        LoggerUtil.error(`${bind} requires elevated privileges`);
+        process.exit(1);
+        break;
+      case 'EADDRINUSE':
+        LoggerUtil.error(`${bind} is already in use`);
+        process.exit(1);
+        break;
+      default:
+        throw error;
     }
   };
   const _onListening = () => {
@@ -56,22 +58,49 @@ const init = async () => {
   server.on('listening', _onListening);
 };
 const total_cpus = require('os').cpus().length;
+let urls = []
+let element = [];
 
-if (cluster.isPrimary) {
-  for (let i = 0; i < total_cpus; i += 1) {
-    cluster.fork();
+async function isPrimary() {
+
+  if (cluster.isPrimary) {
+    urls = await UrlsModel.getUrls(0,500);
+    // urls = await UrlsController.getAllUrls(1,20);
+
+    const worker = cluster.fork();
+    for (let i = 0; i < 7; i += 1) {
+      cluster.fork()
+    }
+      for (let step = 0; step < urls.length; step += 5) {
+        element = urls.slice(step, step + 5);
+        worker.send(element);
+      }
+
+      worker.on("message", (msg) => {
+        // check for data property
+        // on msg object
+        if (msg.data) {
+          let count = msg.data.length * urls.length/5;
+          console.log(count);
+        }
+      });
+
+    cluster.on('online', (worker) => {
+      console.log(`Worker ${worker.process.pid} is online.`);
+    });
+
+
+    cluster.on('exit', (worker) => {
+      console.log(`worker ${worker.process.pid} died.`);
+      cluster.fork();
+    });
+
+  } else {
+    process.on('message', async function (msg) {
+      // we only want to intercept messages that have a chat property
+      process.send({data : await UrlService.checkUrls(msg)});
+    });
   }
-  cluster.on('online', (worker) => {
-    console.log(`Worker ${worker.process.pid} is online.`);
-  });
-  cluster.on('exit', (worker) => {
-    console.log(`worker ${worker.process.pid} died.`);
-    cluster.fork();
-  });
-} else {
-  init().catch(LoggerUtil.error);
-  const router = express.Router();
-
-  router.get('/urls/:offset/:limit', UrlsController.getAllUrls);
 }
+isPrimary();
 

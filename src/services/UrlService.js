@@ -1,15 +1,11 @@
-/* eslint-disable array-callback-return */
 import fetch from 'node-fetch';
-import { UrlsModel } from '../models';
-import PSQLStorage from '../storage/psql.storage';
-import config from '../config/variables.config';
-
 import PSQL from '../config/variables.config';
 
 const {
   PORT, HOST, DATABASE, USER, PASSWORD
 } = PSQL.PSQL;
 
+let arr = 0;
 class UrlService {
   static async checkUrls(urls) {
     // const urls = await UrlsModel.getUrls(offset, limit);
@@ -28,25 +24,22 @@ class UrlService {
       }
     }
     // console.log(res);
+    arr += fulfilledUrl.length + rejectedUrl.length
     console.log('fulfilled =>', fulfilledUrl);
     console.log('rejectedUrl =>', rejectedUrl);
-    return rejectedUrl, fulfilledUrl;
-  }
-  // const knex = require('knex')({
-  //   client: 'pg',
-  //   useNullAsDefault: true,
-  //   connection: {
-  //     port: PORT,
-  //     host: HOST,
-  //     database: DATABASE,
-  //     user: USER,
-  //     password: PASSWORD
-  //   }
-  // });
-  static async updateUrls() {
-
-
-    const { knex } = PSQLStorage
+    console.log(arr);
+    const count = [];
+    const knex = require('knex')({
+      client: 'pg',
+      useNullAsDefault: true,
+      connection: {
+        port: PORT,
+        host: HOST,
+        database: DATABASE,
+        user: USER,
+        password: PASSWORD
+      }
+    });
     if (rejectedUrl.length > 0) {
       knex
         .from('links')
@@ -55,18 +48,17 @@ class UrlService {
         .then(() => {
           console.log('Table update');
         });
-    }
 
-    if (fulfilledUrl.length > 0) {
-      knex
-        .from('links')
-        .whereIn('id', fulfilledUrl)
-        .update({ status: 'active' })
-        .then(() => {
-          console.log('Table update');
-        });
+      if (fulfilledUrl.length > 0) {
+        knex
+          .from('links')
+          .whereIn('id', fulfilledUrl)
+          .update({ status: 'active' })
+          .then(() => {
+            console.log('Table update');
+          });
+      }
     }
   }
 }
-
 export default UrlService;
